@@ -37,10 +37,10 @@ def index():
         maxLength = int(form.maxLength.data)
         maxPwLen = form.maxPwLen.data
         alt = form.alternate.data
-        pwlist = makePasswordList(minLength,maxLength,maxPwLen,alt)
+        password_list = makePasswordList(minLength,maxLength,maxPwLen,alt)
         if form.lettersubs.data:
-            doLetterSubs(pwlist)
-        return render_template('pwlist.html',pwlist=pwlist)
+            doLetterSubs(password_list)
+        return render_template('password.html',password_list=password_list)
     return render_template('index.html',form=form)
 
 
