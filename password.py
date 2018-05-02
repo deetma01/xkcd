@@ -1,67 +1,61 @@
-import random
+iimport random
 
-wordFile = open("popular_words.dat",'r')
+wordFile = open("popular_words.txt",'r')
 wordlist = wordFile.readlines()
 
-def altscore(word):
-   score = 0.0
-   leftHand = "asdfgzxcvbqwert"
-   rightHand = "lkjhpoiuymn"
-   for i in range(len(word)-1):
-       if word[i] in leftHand and word[i+1] in rightHand:
-           score += 1
-       elif word[i] in rightHand and word[i+1] in leftHand:
-           score += 1
-       elif word[i] == word[i+1]:
-           score += 1
+class XKDC:
+    def __init__(self,maxWordLen, minWordLen, maxOverLen, numSub):
+        self.maxwl = maxWordLen
+        self.minwl = minWordLen
+        self.mol = maxOverLen
+        self.numSub = numSub
+        self.goodwords = []
+        self.wlist = []
 
-   return score / (len(word)-1)
-
-#goodwords = [word[:-1] for word in wordlist if altscore(word) >= 0.7]
-
-def makePassword(goodwords,maxLen):
-    done = False
-    while not done:
-        passlist = []
-        for i in range(4):
-            passlist.append(goodwords[random.randrange(len(goodwords))])
-        wlen = len("".join(passlist))
-        if wlen <= maxLen and wlen > 10:
-            done = True
-            passlist.append(wlen)
-    return passlist
-
-def wordFilter(word,minl,maxl,alt):
-    w = word[:-1]
-    if len(w) >= minl and len(w) <= maxl:
-        if alt:
-            return altscore(w) >= 0.7
-        else:
-            return True
-    return False
-
-def makePasswordList(minLen,maxLen,maxPw,alt):
-    goodwords = [word[:-1] for word in wordlist
-                     if wordFilter(word,minLen,maxLen,alt)]
-
-    wlist = []
-    for i in range(10):
-        wlist.append(makePassword(goodwords,maxPw))
-    return wlist
-
-def doLetterSubs(pwlist):
-    for row in pwlist:
-        i = 0
-        done = False
-        while i < len(row)-1 and not done:
-            newword = row[i].replace('e','3')
-            newword = newword.replace('o','0')
-            if newword != row[i]:
-                row[i] = newword
-                done = True
-            i += 1
-
-
-
-if __name__ == '__main__':
-    print(makePasswordList(4,7,25,True))
+    def goodWordFinder(self):
+        for words in wordlist:
+            if len(words) > self.minwl and len(words) <= self.maxwl:
+                self.goodwords.append(words.strip('\n'))
+    
+    def createPasswords(self):
+        self.goodWordFinder()
+        while len(self.wlist) != 20:
+            password = []
+            for i in range(4):
+                password.append(self.goodwords[random.randrange(len(self.goodwords))])
+            wordlen = len("".join(password))
+            if wordlen <= self.mol and wordlen >= 6:
+                score = self.easyScore(password)
+                password.append(score)
+                if self.numSub:
+                    password = self.numberSub(password)
+                    self.wlist.append(password)
+                else:
+                    self.wlist.append(password)
+        return self.wlist
+    
+    def easyScore(self,plist):
+        score = 0.0
+        lefthand = "asdfgzxcvbqwert"
+        righthand = "lkjhpoiuymn"
+        for word in plist:
+            for i in range(len(word)-1):
+                if word[i] in lefthand and word[i+1] in righthand:
+                    score += 1
+                elif word[i] in righthand and word[i+1] in lefthand:
+                    score += 1
+                elif word[i] == word[i+1]:
+                    score += 1
+            score = score / (len(word))
+                
+        return round(score,3)
+    
+    def numberSub(self,password):
+        word = ""
+        for i in range(len(password)-1):
+            word = password[i].replace('e','3')
+            word = word.replace('o','0')
+            word = word.replace('l','1')
+            password[i] = word
+        
+        return password

@@ -1,49 +1,26 @@
-from flask import Flask, render_template, request, session
-from flask.ext.wtf import Form
+from flask import Flask, render_template, request
 from flask_bootstrap import Bootstrap
-from wtforms import SelectField, DecimalField, SubmitField, BooleanField
-from xkcdpass import makePasswordList, doLetterSubs
-from wtforms.validators import DataRequired
-#
-#  App Initializations
-#
+import xkdc
 app = Flask(__name__)
 Bootstrap(app)
 
-app.debug = True   # need this for autoreload as well as stack trace
-app.secret_key = 'luthercollege'
+@app.route('/')
+def init():
+    return render_template('index.html')
 
-#
-# Forms
-#
-
-class PWSelections(Form):
-    minLength = SelectField('Minimum Word Length',
-                            choices=[('3','3'),('4','4'),('5','5')])
-    maxLength = SelectField('Maximum Word Length',
-                   choices=[('4','4'),('5','5'),('6','6'),('7','7'),('8','8')])
-    maxPwLen = DecimalField('Max Length',validators=[DataRequired()])
-    alternate = BooleanField('Easy Typing')
-    lettersubs = BooleanField('Number Substitutions')
-    submit = SubmitField('Submit')
-
-
-
-@app.route('/', methods=['GET', 'POST'])
-def index():
-    form = PWSelections()
-    if form.validate_on_submit():
-        minLength = int(form.minLength.data)
-        maxLength = int(form.maxLength.data)
-        maxPwLen = form.maxPwLen.data
-        alt = form.alternate.data
-        password_list = makePasswordList(minLength,maxLength,maxPwLen,alt)
-        if form.lettersubs.data:
-            doLetterSubs(password_list)
-        return render_template('password.html',password_list=password_list)
-    return render_template('index.html',form=form)
+@app.route('/getdata', methods = ["POST"])
+def getdata():
+    minWordLen = int(request.form['minWordLen'])
+    maxWordLen = int(request.form['maxWordLen'])
+    maxOverLen = int(request.form['maxOverLen'])
+    if request.form.get('numSub'):
+        numSub = True
+    else:
+        numSub = False
+    obj = xkdc.XKDC(maxWordLen,minWordLen,maxOverLen,numSub)
+    wordlist = obj.createPasswords()
+    return render_template('xkdcpass.html', wlist=wordlist)
 
 
-
-if __name__ == '__main__':
-    app.run()
+if __name__ == "__main__":
+    app.run(debug=True)
