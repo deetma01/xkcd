@@ -1,6 +1,9 @@
+import flask, flask_bootstrap
 from flask import Flask, render_template, request
 from flask_bootstrap import Bootstrap
-import xkdc
+import password
+
+
 app = Flask(__name__)
 Bootstrap(app)
 
@@ -17,9 +20,9 @@ def getdata():
         numSub = True
     else:
         numSub = False
-    obj = xkdc.XKDC(maxWordLen,minWordLen,maxOverLen,numSub)
+    obj = password.XKDC(maxWordLen,minWordLen,maxOverLen,numSub)
     wordlist = obj.createPasswords()
-    return render_template('xkdcpass.html', wlist=wordlist)
+    return render_template('password.html', wlist=wordlist)
 
 
 if __name__ == "__main__":
